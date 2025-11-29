@@ -117,28 +117,29 @@ func (r *RepoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			logger.Info("creating mirror repo via migration")
 
 			migrateOpts := g.MigrateRepoOption{
-			    RepoName:       repo.Name,
-			    CloneAddr:      repo.Spec.CloneAddr,
-			    Mirror:         true,
-			    Description:    repo.Spec.Description,
-			    Private:        repo.Spec.Private,
-			    MirrorInterval: repo.Spec.MirrorInterval,
-			    // TODO: Deal with mirror username and password later. Too much headache.
+				RepoName:       repo.Name,
+				RepoOwner:      repo.Spec.Org.Name,
+				CloneAddr:      repo.Spec.CloneAddr,
+				Mirror:         true,
+				Description:    repo.Spec.Description,
+				Private:        repo.Spec.Private,
+				MirrorInterval: repo.Spec.MirrorInterval,
+				// TODO: Deal with mirror username and password later. Too much headache.
 			}
 
-		_, _, err = r.c.MigrateRepo(migrateOpts)
+			_, _, err = r.h.MigrateRepo(migrateOpts)
 		} else {
 			createOpts := g.CreateRepoOption{
-			    Name:          repo.Name,
-			    Description:   repo.Spec.Description,
-			    Private:       repo.Spec.Private,
-			    Readme:        repo.Spec.Readme,
-			    License:       repo.Spec.License,
-			    DefaultBranch: repo.Spec.DefaultBranch,
-			    Gitignores:    repo.Spec.Gitignores,
-			    Template:      repo.Spec.Template,
-			    AutoInit:      repo.Spec.AutoInit,
-			    IssueLabels:   repo.Spec.IssueLabels,
+				Name:          repo.Name,
+				Description:   repo.Spec.Description,
+				Private:       repo.Spec.Private,
+				Readme:        repo.Spec.Readme,
+				License:       repo.Spec.License,
+				DefaultBranch: repo.Spec.DefaultBranch,
+				Gitignores:    repo.Spec.Gitignores,
+				Template:      repo.Spec.Template,
+				AutoInit:      repo.Spec.AutoInit,
+				IssueLabels:   repo.Spec.IssueLabels,
 			}
 			_, _, err = r.h.CreateOrgRepo(repo.Spec.Org.Name, createOpts)
 		}
@@ -166,21 +167,22 @@ func (r *RepoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if repo.Spec.Mirror {
 			logger.Info("creating user mirror repo via migration")
 			migrateOpts := g.MigrateRepoOption{
-			    RepoName:      repo.Name,
-			    RemoteAddress: repo.Spec.CloneAddr,
-			    Mirror:        true,
-			    Description:   repo.Spec.Description,
-			    Private:       repo.Spec.Private,
-			    Interval:      repo.Spec.MirrorInterval,
+				RepoName:       repo.Name,
+				RepoOwner:      repo.Spec.User.Name,
+				CloneAddr:      repo.Spec.CloneAddr,
+				Mirror:         true,
+				Description:    repo.Spec.Description,
+				Private:        repo.Spec.Private,
+				MirrorInterval: repo.Spec.MirrorInterval,
 			}
-			_, _, err = r.h.MigrateUserRepo(repo.Spec.User.Name, migrateOpts)
+			_, _, err = r.h.MigrateRepo(migrateOpts)
 		} else {
 			createOpts := g.CreateRepoOption{
-			    Name:          repo.Name,
-			    Description:   repo.Spec.Description,
-			    Private:       repo.Spec.Private,
+				Name:        repo.Name,
+				Description: repo.Spec.Description,
+				Private:     repo.Spec.Private,
 			}
-			_, _, err = r.h.CreateRepo(createOpts) 
+			_, _, err = r.h.CreateRepo(createOpts)
 		}
 
 		if err != nil {
@@ -190,20 +192,19 @@ func (r *RepoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if !repo.Status.Provisioned {
 			repo.Status.Provisioned = true
 			if err := r.Client.Status().Update(ctx, repo); err != nil {
-			    logger.Error(err, "Failed to update Repo status")
-			    return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 5}, err
+				logger.Error(err, "Failed to update Repo status")
+				return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 5}, err
 			}
 		}
 		if !controllerutil.ContainsFinalizer(repo, repoFinalizer) {
 			controllerutil.AddFinalizer(repo, repoFinalizer)
 			if err := r.Update(ctx, repo); err != nil {
-			    return ctrl.Result{}, err
+				return ctrl.Result{}, err
 			}
 		}
 	}
 	return ctrl.Result{}, nil
 }
-
 
 func (r *RepoReconciler) deleteRepo(repo *hyperv1.Repo) error {
 	_, err := r.h.DeleteRepo(repo.Spec.Org.Name, repo.Name)
