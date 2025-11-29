@@ -113,7 +113,7 @@ func (r *RepoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			}
 		}
 		logger.Info("creating repo")
-		_, _, err = r.h.CreateOrgRepo(repo.Spec.Org.Name, g.CreateRepoOption{
+		createOpts := g.CreateRepoOption{
 			Name:          repo.Name,
 			Description:   repo.Spec.Description,
 			Private:       repo.Spec.Private,
@@ -124,7 +124,13 @@ func (r *RepoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			Template:      repo.Spec.Template,
 			AutoInit:      repo.Spec.AutoInit,
 			IssueLabels:   repo.Spec.IssueLabels,
-		})
+		}
+		if repo.Spec.Mirror {
+			createOpts.Mirror = true
+			createOpts.CloneAddr = repo.Spec.CloneAddr
+			createOpts.MirrorInterval = repo.Spec.MirrorInterval
+		}
+		_, _, err = r.h.CreateOrgRepo(repo.Spec.Org.Name, createOpts)
 		if err != nil {
 			return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 5}, err
 		}

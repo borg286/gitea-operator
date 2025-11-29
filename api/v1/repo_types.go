@@ -51,6 +51,16 @@ type RepoSpec struct {
 
 	User *UserRef `json:"user,omitempty"`
 	Org  *OrgRef  `json:"org,omitempty"`
+
+	// Mirror enables setting up the repo as a mirror
+	// +optional
+	Mirror bool `json:"mirror,omitempty"`
+	// CloneAddr is the repository URL to mirror from
+	// +optional
+	CloneAddr string `json:"cloneAddr,omitempty"`
+	// MirrorInterval sets the mirror update interval (e.g. "24h")
+	// +optional
+	MirrorInterval string `json:"mirrorInterval,omitempty"`
 }
 
 // RepoStatus defines the observed state of Repo
