@@ -626,7 +626,7 @@ func (r *GiteaReconciler) upsertPG(ctx context.Context, gitea *hyperv1.Gitea) er
 		},
 	}
 	// dont set owner here
-	err := r.Get(ctx, types.NamespacedName{Name: gitea.Name, Namespace: gitea.Namespace}, crb)
+	err := r.Get(ctx, types.NamespacedName{Name: gitea.Name}, crb)
 	if err != nil && errors.IsNotFound(err) {
 		if err := r.Create(ctx, crb); err != nil {
 			logger.Error(err, "failed to create postgres crb")
