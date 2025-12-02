@@ -520,6 +520,9 @@ spec:
               auto_init:
                 description: Whether the repository should be auto-intialized?
                 type: boolean
+              cloneAddr:
+                description: CloneAddr is the repository URL to mirror from
+                type: string
               default_branch:
                 description: DefaultBranch of the repository (used when initializes
                   and in template)
@@ -535,6 +538,13 @@ spec:
                 type: string
               license:
                 description: License to use
+                type: string
+              mirror:
+                description: Mirror enables setting up the repo as a mirror
+                type: boolean
+              mirrorInterval:
+                description: MirrorInterval sets the mirror update interval (e.g.
+                  "24h")
                 type: string
               org:
                 properties:
@@ -1408,7 +1418,7 @@ spec:
         - --health-probe-bind-address=:8081
         command:
         - /manager
-        image: localhost:5000/gitea-operator:1
+        image: borg286/controller:latest
         livenessProbe:
           httpGet:
             path: /healthz
