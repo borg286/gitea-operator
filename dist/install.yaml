@@ -1418,7 +1418,7 @@ spec:
         - --health-probe-bind-address=:8081
         command:
         - /manager
-        image: borg286/controller:latest
+        image: borg286/controller@sha256:a02b9e1d06e9239a57e380c4fe8f95433da4a1f5473cf1238356be956cd18147
         livenessProbe:
           httpGet:
             path: /healthz

@@ -23,11 +23,21 @@
 # by leaving it empty we can ensure that the container and binary shipped on it will have the same platform.
 #RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o manager cmd/main.go
 
+
+FROM alpine AS builder
+
+# Copy the file into the builder stage
+COPY manager /manager
+
+# Now, the RUN command works because /bin/sh exists in the alpine image.
+# This sets the executable permission for 'Other' users.
+RUN chmod o+x /manager
+
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
 
-COPY manager /manager
+COPY --from=builder /manager /manager
 USER 65532:65532
 
 ENTRYPOINT ["/manager"]
